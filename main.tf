@@ -7,6 +7,16 @@
 # internal private routing and Resource Principals.
 ##############################################################
 
+# Fetch the public IP of the machine running Terraform
+data "http" "my_public_ip" {
+  url = "https://ifconfig.me/ip"
+}
+
+# Local variable to format the IP as a CIDR block (/32)
+locals {
+  current_ip = "${chomp(data.http.my_public_ip.response_body)}/32"
+}
+
 # -----------------------------
 # 1. Virtual Cloud Network (VCN)
 # -----------------------------
@@ -78,7 +88,7 @@ resource "oci_core_security_list" "streaming_sl" {
   # Allow SSH from your specific public IP
   ingress_security_rules {
     protocol = "6" # TCP
-    source   = var.my_public_ip
+    source   = local.current_ip
     tcp_options {
       min = 22
       max = 22
@@ -201,7 +211,7 @@ resource "oci_database_autonomous_database" "crypto_adw" {
   # 1. The user's public IP (for DBeaver/SQL Developer)
   # 2. The streaming VM's public IP (for Flink to send data)
   whitelisted_ips          = [
-    var.my_public_ip, 
+    local.current_ip, 
     oci_core_instance.streaming_vm.public_ip
   ]
 }

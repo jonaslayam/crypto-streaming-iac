@@ -33,11 +33,6 @@ variable "ssh_public_key_path" {
   description = "The local path to your public SSH key (id_rsa.pub)"
 }
 
-variable "my_public_ip" {
-  type        = string
-  description = "Your public IP address for SSH access"
-}
-
 variable "adw_admin_password" {
   description = "Password for the ADW admin user"
   type        = string

@@ -1,0 +1,45 @@
+##############################################################
+# OCI PROVIDER CONFIGURATION (Required for Authentication)
+##############################################################
+
+# The OCID of your OCI tenancy
+tenancy_ocid     = ""
+
+# The OCID of your OCI user
+user_ocid        = ""
+
+# The fingerprint of your OCI user's API key
+fingerprint      = ""
+
+# The local path to your OCI user's private key
+private_key_path = "path/to/your/private/key.pem"
+
+# The OCI region (e.g., us-ashburn-1, us-phoenix-1)
+region           = ""
+
+##############################################################
+# PROJECT & RESOURCE SETTINGS
+##############################################################
+
+# The OCID of the compartment where the project will live. 
+# (Can be your Root Tenancy OCID or a specific Project Compartment OCID)
+compartment_id   = ""
+
+# The local path to your SSH public key for VM access
+ssh_public_key_path = "path/to/your/public/key.pub"
+
+# The password for the ADW admin user
+adw_admin_password = ""
+
+# The email address to receive alerts
+alert_email      = ""
+
+##############################################################
+# DOCKER & OCIR SETTINGS
+##############################################################
+
+# Format: <username> (or <identity_domain>/<username> if using federation)
+oci_username     = ""
+
+# The Auth Token generated in OCI User Settings for OCIR authentication
+ocir_auth_token  = ""
