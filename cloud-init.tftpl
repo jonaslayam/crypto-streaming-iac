@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# --- 1. System Update & Upgrade ---
+# Refresh the package list to ensure we get the latest versions
+apt-get update
+# Upgrade all installed packages to their latest versions (-y for auto-confirm)
+apt-get upgrade -y
+
+# --- 2. Install Initial Dependencies ---
+# Install essential tools for managing repositories and security keys
+apt-get install -y ca-certificates curl gnupg lsb-release
+
+# --- 3. Setup Docker's GPG Key and Repository ---
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Add the Docker repository to the APT sources using the system architecture (e.g., arm64)
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# --- 4. Install Docker Engine and Docker Compose ---
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# --- 5. Post-installation: User Permissions ---
+# Add the default 'ubuntu' user to the 'docker' group
+usermod -aG docker ubuntu
+
+# --- 6. Internal Firewall (UFW) Configuration ---
+# IMPORTANTE: Permitir OpenSSH antes de habilitar UFW para evitar quedarnos por fuera
+ufw allow OpenSSH
+
+# Open specific ports required for the Crypto Streaming Stack
+# Note: These must also be opened in the OCI VCN Security List in Terraform
+ufw allow 22/tcp      # SSH (Management)
+ufw allow 8081/tcp    # Apache Flink Dashboard
+ufw allow 8082/tcp    # Redpanda Console (Web UI)
+ufw allow 9092/tcp    # Redpanda Broker (Kafka API)
+
+# Enable the firewall and apply the rules (--force evita que el script se pause esperando un 'y/n')
+ufw --force enable
+
+# --- 7. OCI Container Registry (OCIR) Login ---
+# Terraform will inject these variables dynamically when creating the instance
+echo "Configuring private OCIR access..."
+echo "${ocir_auth_token}" | docker login ${ocir_region}.ocir.io -u "${ocir_namespace}/${ocir_username}" --password-stdin
+
+# --- 8. Pre-fetch Core Images (Optional but recommended) ---
+# Download the heavy images once so your docker-compose starts instantly
+docker pull docker.redpanda.com/redpandadata/redpanda:latest
+docker pull flink:latest
