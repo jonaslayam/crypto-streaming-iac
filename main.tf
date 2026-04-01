@@ -166,7 +166,7 @@ resource "oci_core_instance" "streaming_vm" {
     ssh_authorized_keys = file(var.ssh_public_key_path)
     
     # templatefile reads your .tftpl and replaces the variables before sending it to OCI
-    user_data = base64encode(templatefile("${path.module}/cloud-init.tftpl", {
+    user_data = base64encode(templatefile("${path.module}/templates/cloud-init.tftpl", {
       ocir_region     = var.region                                      # e.g.: "phx" or "iad"
       ocir_namespace  = data.oci_objectstorage_namespace.ns.namespace   # Obtained from OCI automatically
       ocir_username   = var.oci_username                                # Your Oracle Cloud email/username
