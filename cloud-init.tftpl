@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# --- 0. Disk Expansion & Swap (Performance & Stability) ---
+# Expand partition 1 of the boot disk to use all space defined in Terraform
+growpart /dev/sda 1 || echo "Partition already expanded"
+resize2fs /dev/sda1 || echo "Filesystem already resized"
+
+# Create a 4GB Swap file for memory safety
+if [ ! -f /swapfile ]; then
+    fallocate -l 4G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 # --- 1. System Update & Upgrade ---
 # Refresh the package list to ensure we get the latest versions
 apt-get update
