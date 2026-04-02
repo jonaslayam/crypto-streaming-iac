@@ -1,11 +1,11 @@
 #!/bin/bash
+set -e # Stop script on any error to avoid silent failures
+export DEBIAN_FRONTEND=noninteractive
 
-# --- 0. Disk Expansion & Swap (Performance & Stability) ---
-# Expand partition 1 of the boot disk to use all space defined in Terraform
-growpart /dev/sda 1 || echo "Partition already expanded"
-resize2fs /dev/sda1 || echo "Filesystem already resized"
+# --- 0. Disk & Swap ---
+growpart /dev/sda 1 || true
+resize2fs /dev/sda1 || true
 
-# Create a 4GB Swap file for memory safety
 if [ ! -f /swapfile ]; then
     fallocate -l 4G /swapfile
     chmod 600 /swapfile
@@ -14,51 +14,35 @@ if [ ! -f /swapfile ]; then
     echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi
 
-# --- 1. System Update & Upgrade ---
-# Refresh the package list to ensure we get the latest versions
-apt-get update
-# Upgrade all installed packages to their latest versions (-y for auto-confirm)
-apt-get upgrade -y
+# --- 1. System Update & Docker Installation ---
+# Force release APT locks from background auto-updaters
+systemctl stop unattended-upgrades || true
+killall apt-get apt dpkg || true
+rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend
 
-# --- 2. Install Initial Dependencies ---
-# Install essential tools for managing repositories and security keys
-apt-get install -y ca-certificates curl gnupg lsb-release
+apt-get update -y
+apt-get install -y curl
 
-# --- 3. Setup Docker's GPG Key and Repository ---
-mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+# Use the official Docker convenience script (recommended for ARM architecture)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
 
-# Add the Docker repository to the APT sources using the system architecture (e.g., arm64)
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# --- 4. Install Docker Engine and Docker Compose ---
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-# --- 5. Post-installation: User Permissions ---
-# Add the default 'ubuntu' user to the 'docker' group
+# --- 2. Post-installation ---
+systemctl enable --now docker
 usermod -aG docker ubuntu
 
-# --- 6. Internal Firewall (UFW) Configuration ---
-# IMPORTANTE: Permitir OpenSSH antes de habilitar UFW para evitar quedarnos por fuera
+# --- 3. Firewall ---
 ufw allow OpenSSH
-
-# Open specific ports required for the Crypto Streaming Stack
-# Note: These must also be opened in the OCI VCN Security List in Terraform
-ufw allow 22/tcp      # SSH (Management)
-ufw allow 8081/tcp    # Apache Flink Dashboard
-ufw allow 8082/tcp    # Redpanda Console (Web UI)
-ufw allow 9092/tcp    # Redpanda Broker (Kafka API)
-
-# Enable the firewall and apply the rules (--force evita que el script se pause esperando un 'y/n')
+ufw allow 22/tcp
+ufw allow 8081/tcp
+ufw allow 8082/tcp
+ufw allow 9092/tcp
 ufw --force enable
 
-# --- 7. OCI Container Registry (OCIR) Login ---
-# Terraform will inject these variables dynamically when creating the instance
-echo "Configuring private OCIR access..."
+# --- 4. OCIR Login & Pull ---
+# Wait for Docker daemon to be fully initialized
+sleep 10
 echo "${ocir_auth_token}" | docker login ${ocir_region}.ocir.io -u "${ocir_namespace}/${ocir_username}" --password-stdin
 
-# --- 8. Pre-fetch Core Images (Optional but recommended) ---
-# Download the heavy images once so your docker-compose starts instantly
 docker pull docker.redpanda.com/redpandadata/redpanda:latest
 docker pull flink:latest
