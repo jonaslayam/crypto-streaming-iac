@@ -30,3 +30,4 @@ override.tf.json
 # SECURITY: Private keys and certificates
 # These grant access to your OCI instances and API.
 *.pem
+.aider*

@@ -54,25 +54,25 @@ resource "oci_core_security_list" "streaming_sl" {
     }
   }
 
-  # Allow SQL*Net (port 1522) from your public IP for local Producer connection
+  # Allow SQL*Net (port 1521) from your public IP for local Producer connection
   ingress_security_rules {
     protocol    = "6"
     source      = local.current_ip
     description = "Allow external SQL*Net access from developer machine"
     tcp_options {
-      min = 1522
-      max = 1522
+      min = 1521
+      max = 1521
     }
   }
 
-  # Allow internal VCN traffic to ADW port (1522) for VM to Database communication
+  # Allow internal VCN traffic to ADW port (1521) for VM to Database communication
   ingress_security_rules {
     protocol    = "6"
     source      = oci_core_vcn.streaming_vcn.cidr_block
     description = "Allow internal traffic to ADW Private Endpoint"
     tcp_options {
-      min = 1522
-      max = 1522
+      min = 1521
+      max = 1521
     }
   }
 }
