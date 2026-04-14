@@ -10,6 +10,10 @@ resource "oci_database_autonomous_database" "crypto_adw" {
   is_free_tier             = true
   license_model            = "LICENSE_INCLUDED"
   is_mtls_connection_required = false
+  
+  # Explicit Always Free Tier limits
+  cpu_core_count           = 1
+  data_storage_size_in_tbs = 1
 
   # FinOps & Security: To assure the free tier ADW is only accessible from the streaming VM and the user's public IP,
   # we block all internet traffic and only allow:

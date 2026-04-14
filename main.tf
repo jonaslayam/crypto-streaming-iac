@@ -43,3 +43,14 @@ output "ssh_connection" {
   value       = "ssh -i ~/.ssh/id_ed25519_oci ubuntu@${oci_core_instance.streaming_vm.public_ip}"
   description = "Direct SSH command to VM"
 }
+
+output "adw_connection_strings" {
+  value       = oci_database_autonomous_database.crypto_adw.connection_strings
+  description = "ADW connection strings (high, medium, low, tp, tpurgent)"
+  sensitive   = false
+}
+
+output "adw_db_name" {
+  value       = oci_database_autonomous_database.crypto_adw.db_name
+  description = "Database name for connection (use with ADMIN user)"
+}
