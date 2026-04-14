@@ -54,3 +54,8 @@ variable "ocir_auth_token" {
   type        = string
   sensitive   = true # Keeps the token hidden in logs
 }
+
+variable "home_region" {
+  description = "The home region for OCI Identity resources (e.g., us-chicago-1)"
+  type        = string
+}

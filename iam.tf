@@ -2,6 +2,7 @@
 
 # Dynamic group containing the ADW instance. MUST be created at the tenancy level.
 resource "oci_identity_dynamic_group" "adw_dg" {
+  provider       = oci.home
   compartment_id = var.tenancy_ocid
   name           = "dg-crypto-adw"
   description    = "Dynamic group for ADW instance to authenticate without credentials"
@@ -10,6 +11,7 @@ resource "oci_identity_dynamic_group" "adw_dg" {
 
 # Policy allowing the ADW (via Dynamic Group) to read/write into the Object Storage bucket
 resource "oci_identity_policy" "adw_storage_policy" {
+  provider       = oci.home
   compartment_id = var.compartment_id
   name           = "policy-adw-to-storage"
   description    = "Allow ADW to manage objects in the crypto archive bucket"

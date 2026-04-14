@@ -1,6 +1,7 @@
 # Autonomous Data Warehouse (Always Free)
 
 resource "oci_database_autonomous_database" "crypto_adw" {
+  provider                 = oci.home
   compartment_id           = var.compartment_id
   db_name                  = "cryptoadw"
   display_name             = "adw-crypto-streaming"

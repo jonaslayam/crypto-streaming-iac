@@ -3,6 +3,7 @@
 
 # Define a monthly budget of 1 USD for the specific compartment
 resource "oci_budget_budget" "crypto_budget" {
+  provider              = oci.home
   compartment_id        = var.tenancy_ocid # Budgets are created at the tenancy level
   amount                = 1                # 1 USD limit
   reset_period          = "MONTHLY"
@@ -14,6 +15,7 @@ resource "oci_budget_budget" "crypto_budget" {
 
 # Alert 1: ACTUAL spend reaches 100% of the budget ($1 USD)
 resource "oci_budget_alert_rule" "crypto_budget_alert_actual" {
+  provider       = oci.home
   budget_id      = oci_budget_budget.crypto_budget.id
   threshold      = 100
   threshold_type = "PERCENTAGE"
@@ -25,6 +27,7 @@ resource "oci_budget_alert_rule" "crypto_budget_alert_actual" {
 
 # Alert 2: FORECASTED spend is expected to exceed 100% of the budget
 resource "oci_budget_alert_rule" "crypto_budget_alert_forecast" {
+  provider       = oci.home
   budget_id      = oci_budget_budget.crypto_budget.id
   threshold      = 100
   threshold_type = "PERCENTAGE"

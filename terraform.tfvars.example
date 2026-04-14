@@ -16,6 +16,7 @@ private_key_path = "path/to/your/private/key.pem"
 
 # The OCI region (e.g., us-ashburn-1, us-phoenix-1)
 region           = ""
+home_region      = ""
 
 ##############################################################
 # PROJECT & RESOURCE SETTINGS
